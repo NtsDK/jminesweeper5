@@ -23,7 +23,7 @@ public class MineSweeperGame {
   static {
     cellState2String.put(CellState.OPEN, "O");
     cellState2String.put(CellState.CLOSE, "C");
-    cellState2String.put(CellState.FLAG, "M");
+    cellState2String.put(CellState.FLAG, "F");
   }
   
   public MineSweeperGame() {
@@ -45,6 +45,10 @@ public class MineSweeperGame {
         minesNumber--;
       }
     }
+    countCellValues();
+  }
+
+  public void countCellValues() {
     for(int y=0; y<ySize; ++y) {
       for(int x=0; x<xSize; ++x) {
         Cell cell = gameField.get(new CellCoords(x, y));
@@ -58,13 +62,15 @@ public class MineSweeperGame {
               }
             }
             cell.setCellValue(neighbourMineNumber);
+            ArrayList<Cell> neighboursList = new ArrayList<Cell>();
+            for(CellCoords cellCoords:neighboursCoords) {
+              neighboursList.add(gameField.get(cellCoords));
+            }
+            cell.setNeighbourList(neighboursList);
           } catch (OutOfFieldException e) {
             e.printStackTrace();
           }
-          
         }
-        
-        //gameField.put(new CellCoords(x, y), new Cell(new CellCoords(x, y)));
       }
     }
   }
@@ -91,17 +97,21 @@ public class MineSweeperGame {
     return neighboursCoords;
   }
 
-  public Cell getCell(CellCoords cellCoords) {
+  public Cell getCell(int x, int y) {
+    return getCell(new CellCoords(x, y));
+  }
+  
+  private Cell getCell(CellCoords cellCoords) {
     return gameField.get(cellCoords);
   }
   
-  public int openCell(int x, int y) {
-    return 8;
-  }
-  
-  public int markCell(int x, int y) {
-    return 6;
-  }
+//  public int openCell(int x, int y) {
+//    return 8;
+//  }
+//  
+//  public int markCell(int x, int y) {
+//    return 6;
+//  }
   
   /**
    * @param args
