@@ -4,7 +4,7 @@ public class CellState {
   private CellState() {}
   public static final CellState OPEN = new CellState();
   public static final CellState CLOSE = new CellState();
-  public static final CellState MARK = new CellState();
+  public static final CellState FLAG = new CellState();
 }
 
 //public final class Suit {

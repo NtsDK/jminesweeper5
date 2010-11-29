@@ -4,11 +4,20 @@ public class Cell {
   private CellCoords cellCoords;
   private CellState cellState;
   private CellType cellType;
+  private int cellValue = 9;
   
   public Cell(CellCoords cellCoords) {
     this.cellCoords = cellCoords;
     cellState = CellState.CLOSE;
     cellType = CellType.EMPTY_CELL;
+  }
+  
+  public void setCellValue(int value) {
+    cellValue = value;
+  }
+  
+  public int getCellValue() {
+    return cellValue;
   }
   
   public CellType getCellType() {
@@ -19,16 +28,16 @@ public class Cell {
     if(cellState == CellState.CLOSE) {
       cellState = CellState.OPEN;
     }
-    else if(cellState == CellState.OPEN) {
-      cellState = CellState.CLOSE;
-    }
+//    else if(cellState == CellState.OPEN) {
+//      cellState = CellState.CLOSE;
+//    }
   }
   
-  public void markCell() {
+  public void flagCell() {
     if(cellState == CellState.CLOSE) {
-      cellState = CellState.MARK;
+      cellState = CellState.FLAG;
     }
-    else if(cellState == CellState.MARK) {
+    else if(cellState == CellState.FLAG) {
       cellState = CellState.CLOSE;
     }
   }
@@ -65,7 +74,63 @@ public class Cell {
 
   public void makeMove(GameEventType eventType) {
     // TODO Auto-generated method stub
-    
+    EventAction.getEventAction(eventType, this).ExecuteAction(this);
+  }
+  
+  static abstract class EventAction {
+    private EventAction() {}
+    // flag on/off
+    private static final EventAction switchFlagAction  =
+    new EventAction() {
+      public void ExecuteAction(Cell cell) {}
+    };
+    // flag all neighbours
+    private static final EventAction flagAllNeighboursAction  = 
+      new EventAction() {
+        public void ExecuteAction(Cell cell) {}
+      };
+    // open all neighbours  
+    private static final EventAction openAllNeighboursAction  = 
+      new EventAction() {
+        public void ExecuteAction(Cell cell) {}
+      };
+    // open cell
+    private static final EventAction openCellAction  = 
+    new EventAction() {
+      public void ExecuteAction(Cell cell) {}
+    };
+    private static final EventAction emptyAction  = 
+      new EventAction() {
+        public void ExecuteAction(Cell cell) {}
+      };
+    public static EventAction getEventAction(GameEventType eventType, Cell cell) {
+      if(eventType == GameEventType.LEFT_BUTTON_CLICK) {
+        if(cell.getCellState()==CellState.OPEN) {
+          return openAllNeighboursAction;
+        }
+        if(cell.getCellState()==CellState.FLAG) {
+          return emptyAction;
+        }
+        if(cell.getCellState()==CellState.CLOSE) {
+          return openCellAction;
+        }
+      }
+      else {
+        if(cell.getCellState()==CellState.OPEN) {
+          return flagAllNeighboursAction;
+        }
+        if(cell.getCellState()==CellState.FLAG) {
+          return switchFlagAction;
+        }
+        if(cell.getCellState()==CellState.CLOSE) {
+          return switchFlagAction;
+        }
+      }
+      System.out.println("Can't reach this place in EventAction.getEventAction");
+      return emptyAction;
+    }
+      
+    abstract public void ExecuteAction(Cell cell);
   }
   
   public void setMine() {
