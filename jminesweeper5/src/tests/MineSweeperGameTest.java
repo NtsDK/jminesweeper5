@@ -39,11 +39,12 @@ public class MineSweeperGameTest {
   @Test
   public void testPrintField() {
     MineSweeperGame mineSweeperGame = new MineSweeperGame();
-    mineSweeperGame.getCell(new CellCoords(5, 5)).markCell();
+    mineSweeperGame.getCell(new CellCoords(5, 5)).flagCell();
     mineSweeperGame.getCell(new CellCoords(4, 5)).openCell();
     mineSweeperGame.getCell(new CellCoords(8, 5)).openCell();
     mineSweeperGame.getCell(new CellCoords(8, 5)).openCell();
     mineSweeperGame.printField();
+    mineSweeperGame.printFieldContents();
   }
 
 }

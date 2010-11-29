@@ -13,7 +13,7 @@ public class MineSweeperGame {
   static {
     cellState2String.put(CellState.OPEN, "O");
     cellState2String.put(CellState.CLOSE, "C");
-    cellState2String.put(CellState.MARK, "M");
+    cellState2String.put(CellState.FLAG, "M");
   }
   
   public MineSweeperGame() {
@@ -60,6 +60,23 @@ public class MineSweeperGame {
       System.out.println();
     }
   }
+  
+  public void printFieldContents() {
+    for(int y=0; y<ySize; ++y) {
+      for(int x=0; x<xSize; ++x) {
+        int cellValue = this.getCell(new CellCoords(x, y)).getCellValue();
+        System.out.print(cellValue);
+        if(x%5 == 4 ) {
+          System.out.print(" ");
+        }
+      }
+      if(y%5 == 4 ) {
+        System.out.println();
+      }
+      System.out.println();
+    }
+  }
+  
 
 
   public boolean isGameEnded() {
@@ -74,8 +91,9 @@ public class MineSweeperGame {
     if(isGameEnded) {
       return;
     }
-    this.gameField.get(cellCoords).makeMove(eventType);
-    isGameEnded = this.gameField.get(cellCoords).isGameEnded();
+    Cell currentCell = this.gameField.get(cellCoords);
+    currentCell.makeMove(eventType);
+    isGameEnded = currentCell.isGameEnded();
   }
   
 }
