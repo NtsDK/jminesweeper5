@@ -9,6 +9,10 @@ public class Cell {
   private ArrayList<Cell> neighboursList = new ArrayList<Cell>();
   private int cellValue = 9;
   
+  public Cell(int x, int y) {
+    this(new CellCoords(x, y));
+  }
+  
   public Cell(CellCoords cellCoords) {
     this.cellCoords = cellCoords;
     cellState = CellState.CLOSE;
@@ -31,6 +35,10 @@ public class Cell {
     return cellType;
   }
   
+  /**
+   * Used for multicell open operation
+   * @return
+   */
   public int countNeighboursFlags() {
     int neighboursCounter = 0;
     for(Cell cell: neighboursList) {
@@ -41,6 +49,10 @@ public class Cell {
     return neighboursCounter;
   }
   
+  /**
+   * Used for multicell close operation
+   * @return
+   */
   public int countOpenNeighbours() {
     int neighboursCounter = 0;
     for(Cell cell: neighboursList) {
@@ -51,6 +63,7 @@ public class Cell {
     return neighboursCounter;
   }
   
+  /** Recursive opening operation */
   public void openCell() {
     if(cellState == CellState.CLOSE) {
       cellState = CellState.OPEN;
@@ -105,9 +118,21 @@ public class Cell {
     return true;
   }
 
-  public void makeMove(GameEventType eventType) {
+//  public void makeMove(GameEventType eventType) {
+//    // TODO Auto-generated method stub
+//    EventAction.getEventAction(eventType, this).ExecuteAction(this);
+//  }
+  
+  /** Make move and return flag isGameEnded */ 
+  public boolean makeMove(GameEventType eventType) {
     // TODO Auto-generated method stub
-    EventAction.getEventAction(eventType, this).ExecuteAction(this);
+    EventAction eventAction = EventAction.getEventAction(eventType, this);
+    eventAction.ExecuteAction(this);
+    if(eventAction.equals(EventAction.openAllNeighboursAction)) {
+      return isGameEnded() || isGameEndedInNeighbours();
+    } else {
+      return isGameEnded();
+    }
   }
   
   static abstract class EventAction {
@@ -154,6 +179,12 @@ public class Cell {
         public void ExecuteAction(Cell cell) {}
       };
       
+      /** 
+       * Determine action procedure for event type by cell.
+       * @param eventType
+       * @param cell state determine action type
+       * @return
+       */
     public static EventAction getEventAction(GameEventType eventType, Cell cell) {
       if(eventType == GameEventType.LEFT_BUTTON_CLICK) {
         if(cell.getCellState()==CellState.OPEN) {
@@ -188,9 +219,24 @@ public class Cell {
     cellType = CellType.MINE;
   }
 
-  public boolean isGameEnded() {
-    // TODO Auto-generated method stub
-    return this.cellType == CellType.MINE && this.cellState == CellState.OPEN;
+  private boolean isGameEnded() {
+    //return (this.cellType == CellType.MINE && this.cellState == CellState.OPEN) || isGameEndedInNeighbours();
+    return (this.cellType == CellType.MINE && this.cellState == CellState.OPEN);
+  }
+  
+  private boolean isGameEndedInNeighbours() {
+    if(cellState!=CellState.OPEN) {
+      return false;
+    }
+//    if(value!=0) {
+//      return false;
+//    }
+    for(Cell cell: neighboursList) {
+      if(cell.isGameEnded()) {
+        return true;
+      }
+    }
+    return false;
   }
   
 }
