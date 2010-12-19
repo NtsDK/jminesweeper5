@@ -11,6 +11,7 @@ public class MineSweeperGame {
   private final int xSize = 20, ySize = 10;
   private boolean isGameEnded = false;
   private static Map<CellState, String> cellState2String = new HashMap<CellState, String>();
+  private int minesNum;
   
   public int getXSize() {
     return xSize;
@@ -35,6 +36,7 @@ public class MineSweeperGame {
   }
   
   public void setMines(int minesNumber) {
+    minesNum = minesNumber;
     Random random = new Random();
     while(minesNumber>0) {
       int x = random.nextInt(xSize);
@@ -80,7 +82,6 @@ public class MineSweeperGame {
   }
   
   public ArrayList<CellCoords> getNeighboursCoords(int x, int y) throws OutOfFieldException {
-    // TODO Auto-generated method stub
     ArrayList<CellCoords> neighboursCoords = new ArrayList<CellCoords>();
     if(x<0 || y<0 || x>=xSize || y>=ySize) {
       throw new OutOfFieldException();
@@ -120,12 +121,50 @@ public class MineSweeperGame {
     // TODO Auto-generated method stub
     
   }
+  
+  public boolean testWinCondition() {
+    int openCellsCounter = 0;
+    for(int y=0; y<ySize; ++y) {
+      for(int x=0; x<xSize; ++x) {
+        if(this.getCell(x, y).getCellState()==CellState.OPEN) {
+          openCellsCounter++;
+        }
+      }
+    }
+    if(openCellsCounter+minesNum==xSize*ySize) {
+      isGameEnded = true;
+      return true;
+    } else {
+      return false;
+    }
+  }
 
   public void printField() {
     for(int y=0; y<ySize; ++y) {
       for(int x=0; x<xSize; ++x) {
         CellState cellState = this.getCell(new CellCoords(x, y)).getCellState();
         System.out.print(cellState2String.get(cellState));
+        if(x%5 == 4 ) {
+          System.out.print(" ");
+        }
+      }
+      if(y%5 == 4 ) {
+        System.out.println();
+      }
+      System.out.println();
+    }
+  }
+  
+  public void printGameField() {
+    for(int y=0; y<ySize; ++y) {
+      for(int x=0; x<xSize; ++x) {
+        CellState cellState = this.getCell(x, y).getCellState();
+        if(cellState==CellState.OPEN) {
+          System.out.print(this.getCell(x, y).getCellValue());
+        } else {
+          System.out.print(cellState2String.get(cellState));
+        }
+        
         if(x%5 == 4 ) {
           System.out.print(" ");
         }
@@ -168,8 +207,7 @@ public class MineSweeperGame {
       return;
     }
     Cell currentCell = this.gameField.get(cellCoords);
-    currentCell.makeMove(eventType);
-    isGameEnded = currentCell.isGameEnded();
+    isGameEnded = currentCell.makeMove(eventType);
   }
   
 }
