@@ -2,7 +2,6 @@ package tests;
 
 import static org.junit.Assert.assertEquals;
 import gameLogic.CellCoords;
-import gameLogic.MineSweeperGame;
 
 import org.junit.Test;
 
