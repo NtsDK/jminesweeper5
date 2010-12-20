@@ -7,7 +7,7 @@ public class MineSweeperConsole {
 
   private static HashMap<String, GameEventType> commandsMap = new HashMap<String, GameEventType>();
   private static int minesNumber = 10;
-  private static MineSweeperGame mineSweeperGame = new MineSweeperGame();
+  private static MinesweeperModel mineSweeperGame = new MinesweeperModel(20,10);
   
   static {
     commandsMap.put("man", GameEventType.PRINT_MAN);
@@ -46,7 +46,7 @@ public class MineSweeperConsole {
   public static void main(String[] args) {
     Scanner in = new Scanner(System.in);
     
-    mineSweeperGame.setMines(minesNumber);
+    mineSweeperGame.resetGame(minesNumber);
     printMan();
     mineSweeperGame.printGameField();
     while(true) {
@@ -85,8 +85,8 @@ public class MineSweeperConsole {
         System.out.println("Incorrect coordinates");
       }
     } else if(gameEvent==GameEventType.NEW_GAME){
-      mineSweeperGame = new MineSweeperGame();
-      mineSweeperGame.setMines(minesNumber);
+      mineSweeperGame = new MinesweeperModel(20,10);
+      mineSweeperGame.resetGame(minesNumber);
     } else if(gameEvent==GameEventType.PRINT_MAN) {
       printMan();
     } else if(gameEvent==GameEventType.CHANGE_MINES_NUMBER) {

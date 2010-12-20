@@ -5,8 +5,8 @@ import gameLogic.Cell;
 import gameLogic.CellCoords;
 import gameLogic.CellState;
 import gameLogic.GameEventType;
-import gameLogic.MineSweeperGame;
-import gameLogic.MineSweeperGame.OutOfFieldException;
+import gameLogic.MinesweeperModel;
+import gameLogic.MinesweeperModel.OutOfFieldException;
 
 import java.util.ArrayList;
 
@@ -14,13 +14,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-public class MineSweeperGameTest{
+public class MinesweeperModelTest{
 
-  private MineSweeperGame mineSweeperGame;
+  private MinesweeperModel mineSweeperGame;
 
   @Before
   public void initialize(){
-    mineSweeperGame = new MineSweeperGame();
+    mineSweeperGame = new MinesweeperModel(20, 10);
   }
   
 //  @Test
@@ -49,7 +49,7 @@ public class MineSweeperGameTest{
   
   @Test
   public void testPrintFieldContents() {
-    mineSweeperGame.setMines(10);
+    mineSweeperGame.resetGame(10);
     mineSweeperGame.getCell(5, 5).setCellValue(3);
     mineSweeperGame.getCell(5, 6).setCellValue(5);
     mineSweeperGame.printFieldContents();
@@ -107,7 +107,7 @@ public class MineSweeperGameTest{
   
   @Test
   public void testGameLogic() {
-    MineSweeperGame mineSweeperGame = getOverridedMineSweeperGame();
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
     mineSweeperGame.getCell(1, 0).openCell();
     mineSweeperGame.getCell(1, 1).flagCell();
     assertEquals(mineSweeperGame.getCell(0, 0).getCellState(), CellState.CLOSE);
@@ -123,7 +123,7 @@ public class MineSweeperGameTest{
   public void testRecursiveOpening(){
     mineSweeperGame.getCell(1, 0).openCell();
     mineSweeperGame.getCell(1, 1).flagCell();
-    MineSweeperGame mineSweeperGame = getOverridedMineSweeperGame();
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
     
     mineSweeperGame.makeMove(new CellCoords(2, 2), GameEventType.LEFT_BUTTON_CLICK);
     assertEquals(mineSweeperGame.getCell(3, 3).getCellState(), CellState.OPEN);
@@ -133,7 +133,7 @@ public class MineSweeperGameTest{
   
   @Test
   public void testCellOpening(){
-    MineSweeperGame mineSweeperGame = getOverridedMineSweeperGame();
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
     
     mineSweeperGame.makeMove(new CellCoords(1, 1), GameEventType.LEFT_BUTTON_CLICK);
     mineSweeperGame.printField();
@@ -147,7 +147,7 @@ public class MineSweeperGameTest{
   
   @Test
   public void testCellFlagging(){
-    MineSweeperGame mineSweeperGame = getOverridedMineSweeperGame();
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
     
     mineSweeperGame.makeMove(new CellCoords(1, 1), GameEventType.RIGHT_BUTTON_CLICK);
     mineSweeperGame.printField();
@@ -161,10 +161,10 @@ public class MineSweeperGameTest{
   
   
 
-  public MineSweeperGame getOverridedMineSweeperGame() {
-    MineSweeperGame mineSweeperGame = new MineSweeperGame() {
+  public MinesweeperModel getOverridedMineSweeperGame() {
+    MinesweeperModel mineSweeperGame = new MinesweeperModel(20,10) {
       @Override
-      public void setMines(int minesNumber) {
+      public void resetGame(int minesNumber) {
         int xSize = getXSize();
         int ySize = getYSize();
         getCell(0, 0).setMine();
@@ -174,7 +174,7 @@ public class MineSweeperGameTest{
         getCell(xSize-1, ySize-1).setMine();
       }
     };
-    mineSweeperGame.setMines(5);
+    mineSweeperGame.resetGame(5);
     mineSweeperGame.countCellValues();
    
     return mineSweeperGame;

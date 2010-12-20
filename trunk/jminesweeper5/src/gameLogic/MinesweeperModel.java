@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-public class MineSweeperGame {
+import javax.swing.ImageIcon;
+import javax.swing.table.AbstractTableModel;
+
+public class MinesweeperModel extends AbstractTableModel{
 
   private Map<CellCoords,Cell> gameField = new HashMap<CellCoords, Cell>(); 
-  private final int xSize = 20, ySize = 10;
-  private boolean isGameEnded = false;
+  private final int xSize, ySize;
+  private boolean isGameEnded;
   private static Map<CellState, String> cellState2String = new HashMap<CellState, String>();
   private int minesNum;
   
@@ -27,15 +30,21 @@ public class MineSweeperGame {
     cellState2String.put(CellState.FLAG, "F");
   }
   
-  public MineSweeperGame() {
-    for(int y=0; y<ySize; ++y) {
-      for(int x=0; x<xSize; ++x) {
+  public MinesweeperModel(int xSize, int ySize) {
+    this.xSize = xSize;
+    this.ySize = ySize;
+    this.isGameEnded = false;
+  }
+  
+  public void resetGame(int minesNumber) {
+    isGameEnded = false;
+    gameField.clear();
+    for(int y=0; y<this.ySize; ++y) {
+      for(int x=0; x<this.xSize; ++x) {
         gameField.put(new CellCoords(x, y), new Cell(new CellCoords(x, y)));
       }
     }
-  }
-  
-  public void setMines(int minesNumber) {
+    
     minesNum = minesNumber;
     Random random = new Random();
     while(minesNumber>0) {
@@ -78,6 +87,11 @@ public class MineSweeperGame {
   }
   
   public class OutOfFieldException extends Exception {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 5563721290754909080L;
     
   }
   
@@ -158,12 +172,7 @@ public class MineSweeperGame {
   public void printGameField() {
     for(int y=0; y<ySize; ++y) {
       for(int x=0; x<xSize; ++x) {
-        CellState cellState = this.getCell(x, y).getCellState();
-        if(cellState==CellState.OPEN) {
-          System.out.print(this.getCell(x, y).getCellValue());
-        } else {
-          System.out.print(cellState2String.get(cellState));
-        }
+        System.out.print(printCellInfo(y, x));
         
         if(x%5 == 4 ) {
           System.out.print(" ");
@@ -173,6 +182,29 @@ public class MineSweeperGame {
         System.out.println();
       }
       System.out.println();
+    }
+  }
+
+  public String printCellInfo(int y, int x) {
+    CellState cellState = this.getCell(x, y).getCellState();
+    if (!isGameEnded) {
+      if (cellState == CellState.OPEN) {
+        return ((Integer) this.getCell(x, y).getCellValue()).toString();
+      } else {
+        return cellState2String.get(cellState);
+      }
+    } else {
+      if (cellState == CellState.OPEN && this.getCell(x, y).getCellType() == CellType.MINE) {
+        return "EM";
+      } else if(cellState == CellState.FLAG && this.getCell(x, y).getCellType() != CellType.MINE) {
+        return "BF";
+      } else if(cellState == CellState.CLOSE && this.getCell(x, y).getCellType() == CellType.MINE) {
+        return "M";
+      } else if (cellState == CellState.OPEN) {
+        return ((Integer) this.getCell(x, y).getCellValue()).toString();
+      } else {
+        return cellState2String.get(cellState);
+      }
     }
   }
   
@@ -208,6 +240,47 @@ public class MineSweeperGame {
     }
     Cell currentCell = this.gameField.get(cellCoords);
     isGameEnded = currentCell.makeMove(eventType);
+  }
+
+  @Override
+  public int getColumnCount() {
+    return getXSize();
+  }
+
+  @Override
+  public int getRowCount() {
+    return getYSize();
+  }
+
+  @Override
+  public Object getValueAt(int arg0, int arg1) {
+    String cellText = printCellInfo(arg0, arg1);
+    if(pictures.get(cellText)!=null) {
+      return pictures.get(cellText);
+    }
+    else {
+      return cellText;
+    }
+  }
+  
+  public final static HashMap<String, ImageIcon> pictures = new HashMap<String, ImageIcon>();
+  
+  static {
+    pictures.put("0", new ImageIcon("zero.png"));
+    pictures.put("C", new ImageIcon("closedCell.png"));
+    pictures.put("1", new ImageIcon("one.png"));
+    pictures.put("2", new ImageIcon("two.png"));
+    pictures.put("3", new ImageIcon("three.png"));
+    pictures.put("4", new ImageIcon("four.png"));
+    pictures.put("5", new ImageIcon("five.png"));
+    pictures.put("6", new ImageIcon("six.png"));
+    pictures.put("7", new ImageIcon("seven.png"));
+    pictures.put("8", new ImageIcon("eight.png"));
+    pictures.put("M", new ImageIcon("mine.png"));
+    pictures.put("9", new ImageIcon("mine.png"));
+    pictures.put("F", new ImageIcon("flag.png"));
+    pictures.put("BF", new ImageIcon("badFlag.png"));
+    pictures.put("EM", new ImageIcon("explodedMine.png"));
   }
   
 }
