@@ -6,6 +6,7 @@ import gameLogic.Cell;
 import gameLogic.CellCoords;
 import gameLogic.CellState;
 import gameLogic.GameEventType;
+import gameLogic.MinesweeperModel;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,7 +44,9 @@ public class CellTest {
     cell.openCell();
     
     //cell.makeMove(GameEventType.LEFT_BUTTON_CLICK)
-    Assert.assertTrue(cell.makeMove(GameEventType.LEFT_BUTTON_CLICK)==true);
+    MinesweeperModel model = new MinesweeperModel(0, 0);
+    model.setAutoOpening(true);
+    Assert.assertTrue(cell.makeMove(GameEventType.LEFT_BUTTON_CLICK, model)==true);
     
   }
   
