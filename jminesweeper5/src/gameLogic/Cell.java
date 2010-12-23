@@ -124,10 +124,10 @@ public class Cell {
 //  }
   
   /** Make move and return flag isGameEnded */ 
-  public boolean makeMove(GameEventType eventType) {
+  public boolean makeMove(GameEventType eventType, MinesweeperModel model) {
     // TODO Auto-generated method stub
     EventAction eventAction = EventAction.getEventAction(eventType, this);
-    eventAction.ExecuteAction(this);
+    eventAction.ExecuteAction(this, model);
     if(eventAction.equals(EventAction.openAllNeighboursAction)) {
       return isGameEnded() || isGameEndedInNeighbours();
     } else {
@@ -140,43 +140,46 @@ public class Cell {
     // flag on/off
     private static final EventAction switchFlagAction  =
     new EventAction() {
-      public void ExecuteAction(Cell cell) {
+      public void ExecuteAction(Cell cell, MinesweeperModel model) {
         cell.flagCell();
       }
     };
     // flag all neighbours
-    private static final EventAction flagAllNeighboursAction  = 
-      new EventAction() {
-        public void ExecuteAction(Cell cell) {
-          if(cell.countOpenNeighbours()==8-cell.getCellValue()) {
-            for(Cell neighbour: cell.neighboursList) {
+    private static final EventAction flagAllNeighboursAction = new EventAction() {
+      public void ExecuteAction(Cell cell, MinesweeperModel model) {
+        if (model.isAutoFlaggingEnabled()) {
+          if (cell.countOpenNeighbours() == cell.neighboursList.size()
+              - cell.getCellValue()) {
+            for (Cell neighbour : cell.neighboursList) {
               neighbour.flagCell();
             }
           }
         }
-      };
-    // open all neighbours  
-    private static final EventAction openAllNeighboursAction  = 
-      new EventAction() {
-        public void ExecuteAction(Cell cell) {
-          if(cell.countNeighboursFlags()==cell.getCellValue()) {
-            for(Cell neighbour: cell.neighboursList) {
+      }
+    };
+    // open all neighbours
+    private static final EventAction openAllNeighboursAction = new EventAction() {
+      public void ExecuteAction(Cell cell, MinesweeperModel model) {
+        if (model.isAutoOpeninEnabled()) {
+          if (cell.countNeighboursFlags() == cell.getCellValue()) {
+            for (Cell neighbour : cell.neighboursList) {
               neighbour.openCell();
             }
           }
         }
-      };
+      }
+    };
     // open cell
     private static final EventAction openCellAction  = 
     new EventAction() {
-      public void ExecuteAction(Cell cell) {
+      public void ExecuteAction(Cell cell, MinesweeperModel model) {
         cell.openCell();
       }
     };
     
     private static final EventAction emptyAction  = 
       new EventAction() {
-        public void ExecuteAction(Cell cell) {}
+        public void ExecuteAction(Cell cell, MinesweeperModel model) {}
       };
       
       /** 
@@ -212,7 +215,7 @@ public class Cell {
       return emptyAction;
     }
       
-    abstract public void ExecuteAction(Cell cell);
+    abstract public void ExecuteAction(Cell cell, MinesweeperModel model);
   }
   
   public void setMine() {

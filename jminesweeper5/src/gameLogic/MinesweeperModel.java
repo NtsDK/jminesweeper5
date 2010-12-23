@@ -15,6 +15,8 @@ public class MinesweeperModel extends AbstractTableModel{
   private boolean isGameEnded;
   private static Map<CellState, String> cellState2String = new HashMap<CellState, String>();
   private int minesNum;
+  private boolean autoFlagging;
+  private boolean autoOpening;
   
   public int getXSize() {
     return xSize;
@@ -34,16 +36,13 @@ public class MinesweeperModel extends AbstractTableModel{
     this.xSize = xSize;
     this.ySize = ySize;
     this.isGameEnded = false;
+    makeField();
   }
   
   public void resetGame(int minesNumber) {
     isGameEnded = false;
     gameField.clear();
-    for(int y=0; y<this.ySize; ++y) {
-      for(int x=0; x<this.xSize; ++x) {
-        gameField.put(new CellCoords(x, y), new Cell(new CellCoords(x, y)));
-      }
-    }
+    makeField();
     
     minesNum = minesNumber;
     Random random = new Random();
@@ -57,6 +56,14 @@ public class MinesweeperModel extends AbstractTableModel{
       }
     }
     countCellValues();
+  }
+
+  public void makeField() {
+    for(int y=0; y<this.ySize; ++y) {
+      for(int x=0; x<this.xSize; ++x) {
+        gameField.put(new CellCoords(x, y), new Cell(new CellCoords(x, y)));
+      }
+    }
   }
 
   public void countCellValues() {
@@ -239,7 +246,7 @@ public class MinesweeperModel extends AbstractTableModel{
       return;
     }
     Cell currentCell = this.gameField.get(cellCoords);
-    isGameEnded = currentCell.makeMove(eventType);
+    isGameEnded = currentCell.makeMove(eventType,this);
   }
 
   @Override
@@ -281,6 +288,26 @@ public class MinesweeperModel extends AbstractTableModel{
     pictures.put("F", new ImageIcon("flag.png"));
     pictures.put("BF", new ImageIcon("badFlag.png"));
     pictures.put("EM", new ImageIcon("explodedMine.png"));
+  }
+
+  public void setAutoFlagging(boolean b) {
+    // TODO Auto-generated method stub
+    this.autoFlagging = b;
+  }
+
+  public void setAutoOpening(boolean b) {
+    // TODO Auto-generated method stub
+    this.autoOpening = b;
+  }
+
+  public boolean isAutoFlaggingEnabled() {
+    // TODO Auto-generated method stub
+    return this.autoFlagging;
+  }
+
+  public boolean isAutoOpeninEnabled() {
+    // TODO Auto-generated method stub
+    return this.autoOpening;
   }
   
 }

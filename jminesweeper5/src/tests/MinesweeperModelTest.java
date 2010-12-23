@@ -159,12 +159,69 @@ public class MinesweeperModelTest{
     assertEquals(mineSweeperGame.getCell(2, 2).getCellState(), CellState.CLOSE);
   }
   
+  @Test
+  public void testCellAutoFlagging(){
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
+    
+    mineSweeperGame.setAutoFlagging(true);
+    mineSweeperGame.makeMove(new CellCoords(3, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(1, 0), GameEventType.RIGHT_BUTTON_CLICK);
+    
+    
+    mineSweeperGame.printField();
+    assertEquals(mineSweeperGame.getCell(0, 0).getCellState(), CellState.FLAG);
+    assertEquals(mineSweeperGame.getCell(0, 1).getCellState(), CellState.FLAG);
+  }
   
+  @Test
+  public void testCellAutoFlaggingOff(){
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
+    
+    mineSweeperGame.setAutoFlagging(false);
+    mineSweeperGame.makeMove(new CellCoords(3, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(1, 0), GameEventType.RIGHT_BUTTON_CLICK);
+    
+    
+    mineSweeperGame.printField();
+    assertEquals(mineSweeperGame.getCell(0, 0).getCellState(), CellState.CLOSE);
+    assertEquals(mineSweeperGame.getCell(0, 1).getCellState(), CellState.CLOSE);
+  }
+  
+  @Test
+  public void testCellAutoOpening(){
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
+    
+    mineSweeperGame.setAutoOpening(true);
+    mineSweeperGame.makeMove(new CellCoords(0, 0), GameEventType.RIGHT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(0, 1), GameEventType.RIGHT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    
+    
+    mineSweeperGame.printField();
+    assertEquals(mineSweeperGame.getCell(2, 0).getCellState(), CellState.OPEN);
+  }
+  
+  @Test
+  public void testCellAutoOpeningOff(){
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
+    
+    mineSweeperGame.setAutoOpening(false);
+    mineSweeperGame.makeMove(new CellCoords(0, 0), GameEventType.RIGHT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(0, 1), GameEventType.RIGHT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new CellCoords(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    
+    
+    mineSweeperGame.printField();
+    assertEquals(mineSweeperGame.getCell(2, 0).getCellState(), CellState.CLOSE);
+  }
 
   public MinesweeperModel getOverridedMineSweeperGame() {
     MinesweeperModel mineSweeperGame = new MinesweeperModel(20,10) {
       @Override
       public void resetGame(int minesNumber) {
+        this.makeField();
         int xSize = getXSize();
         int ySize = getYSize();
         getCell(0, 0).setMine();
