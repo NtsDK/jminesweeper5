@@ -1,6 +1,6 @@
 package gameUI;
 
-import gameLogic.CellCoords;
+import gameLogic.FieldPoint;
 import gameLogic.GameEventType;
 import gameLogic.MinesweeperModel;
 
@@ -24,14 +24,13 @@ import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
 
 public class MinesweeperField extends JPanel{
-  /**
-   * 
-   */
   private static final long serialVersionUID = -5893741954597139558L;
   public MinesweeperField() {
     loadProperties();
     
-    gameModel = new MinesweeperModel(Integer.parseInt(getProperty("xSize")),Integer.parseInt(getProperty("ySize")));
+    gameModel = new MinesweeperModel(Integer.parseInt(getProperty("xSize")),
+        Integer.parseInt(getProperty("ySize")),
+        Integer.parseInt(getProperty("minesNumber")));
     
     gameTable = new JTable(gameModel);
     gameModel.addTableModelListener(gameTable);
@@ -50,11 +49,11 @@ public class MinesweeperField extends JPanel{
           int column = gameTable.columnAtPoint(p);
 
           if (SwingUtilities.isLeftMouseButton(e)) {
-            gameModel.makeMove(new CellCoords(column, row),
+            gameModel.makeMove(new FieldPoint(column, row),
                 GameEventType.LEFT_BUTTON_CLICK);
             gameModel.fireTableDataChanged();
           } else if (SwingUtilities.isRightMouseButton(e)) {
-            gameModel.makeMove(new CellCoords(column, row),
+            gameModel.makeMove(new FieldPoint(column, row),
                 GameEventType.RIGHT_BUTTON_CLICK);
             gameModel.fireTableDataChanged();
           }
@@ -66,7 +65,7 @@ public class MinesweeperField extends JPanel{
   }
   
   public void resetGame() {
-    gameModel.resetGame(Integer.parseInt(getProperty("minesNumber")));
+    gameModel.resetGame();
     for(int i=0;i<gameTable.getColumnCount();++i){
       gameTable.getColumnModel().getColumn(i).setPreferredWidth(40);
     }
@@ -83,10 +82,8 @@ public class MinesweeperField extends JPanel{
       gameProperties.load(in);
       in.close();
     } catch (FileNotFoundException e1) {
-      // TODO Auto-generated catch block
       e1.printStackTrace();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
   }
@@ -95,10 +92,6 @@ public class MinesweeperField extends JPanel{
     String property = gameProperties.getProperty(propertyName);
     if(property==null) {
       property = defaultProperties.get(propertyName);
-    }
-    
-    if(propertyName.equals("minesNumber")) {
-      // TODO validate mines number
     }
     return property;
   }
@@ -129,50 +122,7 @@ public class MinesweeperField extends JPanel{
     defaultProperties.put("xSize", "20");
     defaultProperties.put("ySize", "10");
     defaultProperties.put("minesNumber", "15");
-    //defaultProperties.put("gameType", "custom");
   }
-  
-  
-//  public static final int DEFAULT_WIDTH = 400;
-//  public static final int DEFAULT_HEIGHT = 400;
 }
 
-//public class CellRenderer extends JLabel implements TableCellRenderer {
-//
-//    @Override
-//    public Component getTableCellRendererComponent(JTable table, Object value,
-//        boolean isSelected, boolean hasFocus, int row, int column) {
-//      String text = (String)value;
-//      this.setText(text);
-//      this.setEnabled(false);
-//      this.setSize(10, 10);
-//      this.setPreferredSize(new Dimension(10, 10));
-//      this.setToolTipText("Hello!");
-//      setHorizontalAlignment(SwingConstants.CENTER);
-//      setBackground(Color.green);
-//      
-////      this.addMouseListener(new MouseAdapter() {
-////        public void mouseClicked(MouseEvent e) {
-////          JTable target = (JTable) e.getSource();
-////          int row = target.getSelectedRow();
-////          int column = target.getSelectedColumn();
-////          
-////          //if(e.getButton()==InputEvent.BUTTON1_MASK){
-////          
-////          if(SwingUtilities.isLeftMouseButton(e)){
-////            gameModel.makeMove(new CellCoords(column, row), GameEventType.LEFT_BUTTON_CLICK);
-////            gameModel.fireTableDataChanged();
-////          //}else if(e.getButton()==InputEvent.BUTTON2_MASK){
-////          }else if(SwingUtilities.isRightMouseButton(e)){
-////            gameModel.makeMove(new CellCoords(column, row), GameEventType.RIGHT_BUTTON_CLICK);
-////            gameModel.fireTableDataChanged();
-////          }
-////        }
-////      });
-//      
-//      return this;
-//      // TODO Auto-generated method stub
-//      //return null;
-//    }
-    
-//  }
+

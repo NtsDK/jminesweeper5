@@ -1,34 +1,17 @@
 package tests;
 
-import java.util.ArrayList;
-
 import gameLogic.Cell;
-import gameLogic.CellCoords;
-import gameLogic.CellState;
+import gameLogic.FieldPoint;
 import gameLogic.GameEventType;
 import gameLogic.MinesweeperModel;
+
+import java.util.ArrayList;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 
 public class CellTest {
-  
-//  isGameEnded() changed visibility to private
-//  @Test
-//  public void testIsGameEnded() {
-//    Cell cell = new Cell(0, 0);
-//    
-//    Assert.assertTrue(cell.isGameEnded()==false); // no mine, cell close
-//    cell.setMine();
-//    Assert.assertTrue(cell.isGameEnded()==false); // has mine, cell close
-//    cell.openCell();
-//    Assert.assertTrue(cell.isGameEnded()==true); // has mine, cell open
-//    
-//    cell = new Cell(0, 0);
-//    cell.openCell();
-//    Assert.assertTrue(cell.isGameEnded()==false); // no mine, cell open
-//  }
   
   @Test
   public void testIsGameEndedDifficultCase() { // if there was mine with multiopening operation
@@ -37,14 +20,13 @@ public class CellTest {
     neighboursList.add(new Cell(1, 1));
     neighboursList.add(new Cell(1, 0));
     neighboursList.add(new Cell(0, 0));
-    cell.setNeighbourList(neighboursList);
     neighboursList.get(0).setMine();
     neighboursList.get(1).flagCell();
-    cell.setCellValue(1);
+    cell.setNeighbourList(neighboursList);
+    
     cell.openCell();
     
-    //cell.makeMove(GameEventType.LEFT_BUTTON_CLICK)
-    MinesweeperModel model = new MinesweeperModel(0, 0);
+    MinesweeperModel model = new MinesweeperModel(0,0,0);
     model.setAutoOpening(true);
     Assert.assertTrue(cell.makeMove(GameEventType.LEFT_BUTTON_CLICK, model)==true);
     
@@ -52,7 +34,7 @@ public class CellTest {
   
   @Test
   public void testCountOpenNeighbours() {
-    Cell cell = new Cell(new CellCoords(0, 0));
+    Cell cell = new Cell(new FieldPoint(0, 0));
 
     ArrayList<Cell> neighboursList = new ArrayList<Cell>();
     cell.setNeighbourList(neighboursList);
@@ -75,7 +57,7 @@ public class CellTest {
   
   @Test
   public void testCountNeighboursFlags() {
-    Cell cell = new Cell(new CellCoords(0, 0));
+    Cell cell = new Cell(new FieldPoint(0, 0));
 
     ArrayList<Cell> neighboursList = new ArrayList<Cell>();
     cell.setNeighbourList(neighboursList);
@@ -100,14 +82,17 @@ public class CellTest {
   public void testOpenCell() {
     Cell cell = new Cell(0, 0);
     ArrayList<Cell> neighboursList = new ArrayList<Cell>();
-    neighboursList.add(new Cell(1, 1));
-    neighboursList.add(new Cell(1, 0));
+    Cell tempCell = new Cell(1, 1);
+    tempCell.setMine();
+    neighboursList.add(tempCell);
+    tempCell = new Cell(1, 0);
+    tempCell.setMine();
+    neighboursList.add(tempCell);
     neighboursList.add(new Cell(0, 0));
     cell.setNeighbourList(neighboursList );
-    cell.setCellValue(2);
     cell.openCell();
     for(Cell neighbour:neighboursList) {
-      Assert.assertTrue(neighbour.getCellState()==CellState.CLOSE);
+      Assert.assertTrue(neighbour.isClose());
     }
     
     cell = new Cell(0, 0);
@@ -116,11 +101,18 @@ public class CellTest {
     neighboursList.add(new Cell(1, 0));
     neighboursList.add(new Cell(0, 0));
     cell.setNeighbourList(neighboursList );
-    cell.setCellValue(0);
     cell.openCell();
     for(Cell neighbour:neighboursList) {
-      Assert.assertTrue(neighbour.getCellState()==CellState.OPEN);
+      Assert.assertTrue(neighbour.isOpen());
     }
+  }
+  
+  @Test
+  public void testIsMine() {
+    Cell cell = new Cell(0, 0);
+    Assert.assertFalse(cell.isMine());
+    cell.setMine();
+    Assert.assertTrue(cell.isMine());
   }
   
 }

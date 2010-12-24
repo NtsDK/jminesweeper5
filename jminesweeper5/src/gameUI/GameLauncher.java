@@ -1,12 +1,8 @@
 package gameUI;
 
 import java.awt.EventQueue;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
 
 public class GameLauncher {
   public static void main(String[] args) {

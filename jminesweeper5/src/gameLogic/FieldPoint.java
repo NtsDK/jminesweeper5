@@ -1,9 +1,9 @@
 package gameLogic;
 
-public class CellCoords {
+public class FieldPoint {
   private int x, y;
   
-  public CellCoords(int x, int y) {
+  public FieldPoint(int x, int y) {
     this.x = x;
     this.y = y;
   }
@@ -25,13 +25,11 @@ public class CellCoords {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    CellCoords other = (CellCoords) obj;
+    FieldPoint other = (FieldPoint) obj;
     if (x != other.x)
       return false;
     if (y != other.y)
       return false;
     return true;
   }
-  
-
 }

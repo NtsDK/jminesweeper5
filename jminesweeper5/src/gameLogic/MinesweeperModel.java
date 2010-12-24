@@ -10,13 +10,26 @@ import javax.swing.table.AbstractTableModel;
 
 public class MinesweeperModel extends AbstractTableModel{
 
-  private Map<CellCoords,Cell> gameField = new HashMap<CellCoords, Cell>(); 
-  private final int xSize, ySize;
+  private static final long serialVersionUID = 3171163557305920461L;
+  private Map<FieldPoint,Cell> gameField = new HashMap<FieldPoint, Cell>(); 
+  private int xSize, ySize;
   private boolean isGameEnded;
-  private static Map<CellState, String> cellState2String = new HashMap<CellState, String>();
-  private int minesNum;
   private boolean autoFlagging;
   private boolean autoOpening;
+  private int minesNumber;
+  
+  public MinesweeperModel(int xSize, int ySize) {
+    this(xSize, ySize, 10);
+  }
+  
+  public MinesweeperModel(int xSize, int ySize, int minesNumber) {
+    setFieldSize(xSize, ySize);
+    setMinesNumber(minesNumber);
+    this.isGameEnded = false;
+    makeField();
+    setAutoFlagging(true);
+    setAutoOpening(true);
+  }
   
   public int getXSize() {
     return xSize;
@@ -26,42 +39,66 @@ public class MinesweeperModel extends AbstractTableModel{
     return ySize;
   }
   
-  static {
-    cellState2String.put(CellState.OPEN, "O");
-    cellState2String.put(CellState.CLOSE, "C");
-    cellState2String.put(CellState.FLAG, "F");
+  /** Mines restrictions: min number - 10 mines, max number - (xSize-1)*(ySize-1) mines. 
+   * @param minesNumber
+   */
+  public void setMinesNumber(int minesNumber) {
+    if(minesNumber<10) {
+      minesNumber = 10;
+    }
+    
+    if(minesNumber>(xSize-1)*(ySize-1)){
+      minesNumber = (xSize-1)*(ySize-1);
+    }
+    
+    this.minesNumber = minesNumber;
   }
   
-  public MinesweeperModel(int xSize, int ySize) {
+  /** Field restrictions: min size - 8 cells, max size - 50 cells. 
+   * @param xSize
+   * @param ySize
+   */
+  public void setFieldSize(int xSize,int ySize){
+    if(xSize<8) {
+      xSize = 8;
+    }
+    if(ySize<8) {
+      ySize = 8;
+    }
+    if(xSize>50) {
+      xSize = 50;
+    }
+    if(ySize>50) {
+      ySize = 50;
+    }
+    
     this.xSize = xSize;
     this.ySize = ySize;
-    this.isGameEnded = false;
-    makeField();
   }
   
-  public void resetGame(int minesNumber) {
+  public void resetGame() {
     isGameEnded = false;
     gameField.clear();
     makeField();
     
-    minesNum = minesNumber;
+    int localMinesNumber = minesNumber;
     Random random = new Random();
-    while(minesNumber>0) {
+    while(localMinesNumber>0) {
       int x = random.nextInt(xSize);
       int y = random.nextInt(ySize);
-      Cell cell = gameField.get(new CellCoords(x, y));
-      if(cell.getCellType()!=CellType.MINE) {
+      Cell cell = gameField.get(new FieldPoint(x, y));
+      if(!cell.isMine()) {
         cell.setMine();
-        minesNumber--;
+        localMinesNumber--;
       }
     }
     countCellValues();
   }
 
-  public void makeField() {
+  protected void makeField() {
     for(int y=0; y<this.ySize; ++y) {
       for(int x=0; x<this.xSize; ++x) {
-        gameField.put(new CellCoords(x, y), new Cell(new CellCoords(x, y)));
+        gameField.put(new FieldPoint(x, y), new Cell(x, y));
       }
     }
   }
@@ -69,19 +106,12 @@ public class MinesweeperModel extends AbstractTableModel{
   public void countCellValues() {
     for(int y=0; y<ySize; ++y) {
       for(int x=0; x<xSize; ++x) {
-        Cell cell = gameField.get(new CellCoords(x, y));
-        if(cell.getCellType()!=CellType.MINE) {
+        Cell cell = gameField.get(new FieldPoint(x, y));
+        if(!cell.isMine()) {
           try {
-            ArrayList<CellCoords> neighboursCoords = getNeighboursCoords(x, y);
-            int neighbourMineNumber = 0;
-            for(CellCoords cellCoords:neighboursCoords) {
-              if(gameField.get(cellCoords).getCellType()==CellType.MINE ) {
-                neighbourMineNumber++;
-              }
-            }
-            cell.setCellValue(neighbourMineNumber);
+            ArrayList<FieldPoint> neighboursCoords = getNeighboursCoords(x, y);
             ArrayList<Cell> neighboursList = new ArrayList<Cell>();
-            for(CellCoords cellCoords:neighboursCoords) {
+            for(FieldPoint cellCoords:neighboursCoords) {
               neighboursList.add(gameField.get(cellCoords));
             }
             cell.setNeighbourList(neighboursList);
@@ -93,66 +123,42 @@ public class MinesweeperModel extends AbstractTableModel{
     }
   }
   
-  public class OutOfFieldException extends Exception {
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 5563721290754909080L;
-    
-  }
-  
-  public ArrayList<CellCoords> getNeighboursCoords(int x, int y) throws OutOfFieldException {
-    ArrayList<CellCoords> neighboursCoords = new ArrayList<CellCoords>();
+  public ArrayList<FieldPoint> getNeighboursCoords(int x, int y) throws OutOfFieldException {
+    ArrayList<FieldPoint> neighboursCoords = new ArrayList<FieldPoint>();
     if(x<0 || y<0 || x>=xSize || y>=ySize) {
       throw new OutOfFieldException();
     }
-    if(x>0       && y>0      ) neighboursCoords.add(new CellCoords(x-1, y-1));
-    if(x>0                   ) neighboursCoords.add(new CellCoords(x-1,  y ));
-    if(x>0       && y<ySize-1) neighboursCoords.add(new CellCoords(x-1, y+1));
-    if(             y<ySize-1) neighboursCoords.add(new CellCoords( x , y+1));
-    if(x<xSize-1 && y<ySize-1) neighboursCoords.add(new CellCoords(x+1, y+1));
-    if(x<xSize-1             ) neighboursCoords.add(new CellCoords(x+1,  y ));
-    if(x<xSize-1 && y>0      ) neighboursCoords.add(new CellCoords(x+1, y-1));
-    if(             y>0      ) neighboursCoords.add(new CellCoords( x , y-1));
+    if(x>0       && y>0      ) neighboursCoords.add(new FieldPoint(x-1, y-1));
+    if(x>0                   ) neighboursCoords.add(new FieldPoint(x-1,  y ));
+    if(x>0       && y<ySize-1) neighboursCoords.add(new FieldPoint(x-1, y+1));
+    if(             y<ySize-1) neighboursCoords.add(new FieldPoint( x , y+1));
+    if(x<xSize-1 && y<ySize-1) neighboursCoords.add(new FieldPoint(x+1, y+1));
+    if(x<xSize-1             ) neighboursCoords.add(new FieldPoint(x+1,  y ));
+    if(x<xSize-1 && y>0      ) neighboursCoords.add(new FieldPoint(x+1, y-1));
+    if(             y>0      ) neighboursCoords.add(new FieldPoint( x , y-1));
     
     return neighboursCoords;
   }
 
+  
   public Cell getCell(int x, int y) {
-    return getCell(new CellCoords(x, y));
+    return getCell(new FieldPoint(x, y));
   }
   
-  private Cell getCell(CellCoords cellCoords) {
+  private Cell getCell(FieldPoint cellCoords) {
     return gameField.get(cellCoords);
-  }
-  
-//  public int openCell(int x, int y) {
-//    return 8;
-//  }
-//  
-//  public int markCell(int x, int y) {
-//    return 6;
-//  }
-  
-  /**
-   * @param args
-   */
-  public static void main(String[] args) {
-    // TODO Auto-generated method stub
-    
   }
   
   public boolean testWinCondition() {
     int openCellsCounter = 0;
     for(int y=0; y<ySize; ++y) {
       for(int x=0; x<xSize; ++x) {
-        if(this.getCell(x, y).getCellState()==CellState.OPEN) {
+        if(this.getCell(new FieldPoint(x, y)).isOpen()) {
           openCellsCounter++;
         }
       }
     }
-    if(openCellsCounter+minesNum==xSize*ySize) {
+    if(openCellsCounter+minesNumber==xSize*ySize) {
       isGameEnded = true;
       return true;
     } else {
@@ -160,88 +166,37 @@ public class MinesweeperModel extends AbstractTableModel{
     }
   }
 
-  public void printField() {
-    for(int y=0; y<ySize; ++y) {
-      for(int x=0; x<xSize; ++x) {
-        CellState cellState = this.getCell(new CellCoords(x, y)).getCellState();
-        System.out.print(cellState2String.get(cellState));
-        if(x%5 == 4 ) {
-          System.out.print(" ");
-        }
-      }
-      if(y%5 == 4 ) {
-        System.out.println();
-      }
-      System.out.println();
-    }
-  }
-  
-  public void printGameField() {
-    for(int y=0; y<ySize; ++y) {
-      for(int x=0; x<xSize; ++x) {
-        System.out.print(printCellInfo(y, x));
-        
-        if(x%5 == 4 ) {
-          System.out.print(" ");
-        }
-      }
-      if(y%5 == 4 ) {
-        System.out.println();
-      }
-      System.out.println();
-    }
-  }
-
   public String printCellInfo(int y, int x) {
-    CellState cellState = this.getCell(x, y).getCellState();
+    Cell cell = this.getCell(new FieldPoint(x, y));
     if (!isGameEnded) {
-      if (cellState == CellState.OPEN) {
-        return ((Integer) this.getCell(x, y).getCellValue()).toString();
+      if (cell.isOpen()) {
+        return ((Integer) cell.getCellValue()).toString();
       } else {
-        return cellState2String.get(cellState);
+        return cell.getCellStateStringRepresentation();
       }
     } else {
-      if (cellState == CellState.OPEN && this.getCell(x, y).getCellType() == CellType.MINE) {
+      if (cell.isOpen() && cell.isMine()) {
         return "EM";
-      } else if(cellState == CellState.FLAG && this.getCell(x, y).getCellType() != CellType.MINE) {
+      } else if (cell.isFlag() && !cell.isMine()) {
         return "BF";
-      } else if(cellState == CellState.CLOSE && this.getCell(x, y).getCellType() == CellType.MINE) {
+      } else if (cell.isClose() && cell.isMine()) {
         return "M";
-      } else if (cellState == CellState.OPEN) {
-        return ((Integer) this.getCell(x, y).getCellValue()).toString();
+      } else if (cell.isOpen()) {
+        return ((Integer) cell.getCellValue()).toString();
       } else {
-        return cellState2String.get(cellState);
+        return cell.getCellStateStringRepresentation();
       }
-    }
-  }
-  
-  public void printFieldContents() {
-    for(int y=0; y<ySize; ++y) {
-      for(int x=0; x<xSize; ++x) {
-        int cellValue = this.getCell(new CellCoords(x, y)).getCellValue();
-        System.out.print(cellValue);
-        if(x%5 == 4 ) {
-          System.out.print(" ");
-        }
-      }
-      if(y%5 == 4 ) {
-        System.out.println();
-      }
-      System.out.println();
     }
   }
   
 
 
   public boolean isGameEnded() {
-    // TODO Auto-generated method stub
     return isGameEnded;
   }
 
 
-  public void makeMove(CellCoords cellCoords, GameEventType eventType) {
-    // TODO Auto-generated method stub
-    //isGameEnded = true;
+  public void makeMove(FieldPoint cellCoords, GameEventType eventType) {
     if(isGameEnded) {
       return;
     }
@@ -284,30 +239,36 @@ public class MinesweeperModel extends AbstractTableModel{
     pictures.put("7", new ImageIcon("seven.png"));
     pictures.put("8", new ImageIcon("eight.png"));
     pictures.put("M", new ImageIcon("mine.png"));
-    pictures.put("9", new ImageIcon("mine.png"));
+    pictures.put("-1", new ImageIcon("mine.png"));
     pictures.put("F", new ImageIcon("flag.png"));
     pictures.put("BF", new ImageIcon("badFlag.png"));
     pictures.put("EM", new ImageIcon("explodedMine.png"));
   }
 
-  public void setAutoFlagging(boolean b) {
-    // TODO Auto-generated method stub
-    this.autoFlagging = b;
+  public void setAutoFlagging(boolean autoFlagging) {
+    this.autoFlagging = autoFlagging;
+    Cell.EventAction.setAutoFlaggingMode(autoFlagging);
   }
 
-  public void setAutoOpening(boolean b) {
-    // TODO Auto-generated method stub
-    this.autoOpening = b;
+  public void setAutoOpening(boolean autoOpening) {
+    this.autoOpening = autoOpening;
+    Cell.EventAction.setAutoOpeningMode(autoOpening);
   }
 
-  public boolean isAutoFlaggingEnabled() {
-    // TODO Auto-generated method stub
-    return this.autoFlagging;
+//  public boolean isAutoFlaggingEnabled() {
+//    return this.autoFlagging;
+//  }
+//
+//  public boolean isAutoOpeninEnabled() {
+//    return this.autoOpening;
+//  }
+  
+  public class OutOfFieldException extends Exception {
+    private static final long serialVersionUID = 5563721290754909080L;
   }
 
-  public boolean isAutoOpeninEnabled() {
-    // TODO Auto-generated method stub
-    return this.autoOpening;
+  public int getMinesNumber() {
+    return minesNumber;
   }
   
 }
