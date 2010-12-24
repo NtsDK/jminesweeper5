@@ -1,26 +1,54 @@
 package gameLogic;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Cell {
-  private CellCoords cellCoords;
+  private FieldPoint cellCoords;
   private CellState cellState;
-  private CellType cellType;
   private ArrayList<Cell> neighboursList = new ArrayList<Cell>();
-  private int cellValue = 9;
+  private int cellValue = -1;
+  private boolean isMine;
   
-  public Cell(int x, int y) {
-    this(new CellCoords(x, y));
+  private static class CellState {
+    private CellState() {}
+    public static final CellState OPEN = new CellState();
+    public static final CellState CLOSE = new CellState();
+    public static final CellState FLAG = new CellState();
   }
   
-  public Cell(CellCoords cellCoords) {
+  public boolean isOpen() {
+    return cellState == CellState.OPEN;
+  }
+  
+  public boolean isFlag() {
+    return cellState == CellState.FLAG;
+  }
+  
+  public boolean isClose() {
+    return cellState == CellState.CLOSE;
+  }
+  
+  public Cell(int x, int y) {
+    this(new FieldPoint(x, y));
+  }
+  
+  public Cell(FieldPoint cellCoords) {
     this.cellCoords = cellCoords;
     cellState = CellState.CLOSE;
-    cellType = CellType.EMPTY_CELL;
+    isMine = false;
   }
   
   public void setNeighbourList(ArrayList<Cell> neighboursList) {
     this.neighboursList = neighboursList;
+    int neighbourMineNumber = 0;
+    for(Cell cell:neighboursList) {
+      if(cell.isMine() ) {
+        neighbourMineNumber++;
+      }
+    }
+    setCellValue(neighbourMineNumber);
   }
   
   public void setCellValue(int value) {
@@ -31,8 +59,8 @@ public class Cell {
     return cellValue;
   }
   
-  public CellType getCellType() {
-    return cellType;
+  public boolean isMine() {
+    return isMine;
   }
   
   /**
@@ -73,10 +101,6 @@ public class Cell {
         }
       }
     }
-    
-//    else if(cellState == CellState.OPEN) {
-//      cellState = CellState.CLOSE;
-//    }
   }
   
   public void flagCell() {
@@ -117,17 +141,11 @@ public class Cell {
       return false;
     return true;
   }
-
-//  public void makeMove(GameEventType eventType) {
-//    // TODO Auto-generated method stub
-//    EventAction.getEventAction(eventType, this).ExecuteAction(this);
-//  }
   
   /** Make move and return flag isGameEnded */ 
   public boolean makeMove(GameEventType eventType, MinesweeperModel model) {
-    // TODO Auto-generated method stub
     EventAction eventAction = EventAction.getEventAction(eventType, this);
-    eventAction.ExecuteAction(this, model);
+    eventAction.ExecuteAction(this);
     if(eventAction.equals(EventAction.openAllNeighboursAction)) {
       return isGameEnded() || isGameEndedInNeighbours();
     } else {
@@ -135,52 +153,42 @@ public class Cell {
     }
   }
   
-  static abstract class EventAction {
+
+  private static Map<CellState, String> cellState2String = new HashMap<CellState, String>();
+  static {
+    cellState2String.put(CellState.OPEN, "O");
+    cellState2String.put(CellState.CLOSE, "C");
+    cellState2String.put(CellState.FLAG, "F");
+  }
+  
+  public String getCellStateStringRepresentation() {
+    return cellState2String.get(cellState);
+  }
+  
+  public static abstract class EventAction {
     private EventAction() {}
     // flag on/off
     private static final EventAction switchFlagAction  =
     new EventAction() {
-      public void ExecuteAction(Cell cell, MinesweeperModel model) {
+      public void ExecuteAction(Cell cell) {
         cell.flagCell();
       }
     };
+    private static final EventAction emptyAction  = 
+      new EventAction() {
+        public void ExecuteAction(Cell cell) {}
+      };
     // flag all neighbours
-    private static final EventAction flagAllNeighboursAction = new EventAction() {
-      public void ExecuteAction(Cell cell, MinesweeperModel model) {
-        if (model.isAutoFlaggingEnabled()) {
-          if (cell.countOpenNeighbours() == cell.neighboursList.size()
-              - cell.getCellValue()) {
-            for (Cell neighbour : cell.neighboursList) {
-              neighbour.flagCell();
-            }
-          }
-        }
-      }
-    };
+    private static EventAction flagAllNeighboursAction = emptyAction;
     // open all neighbours
-    private static final EventAction openAllNeighboursAction = new EventAction() {
-      public void ExecuteAction(Cell cell, MinesweeperModel model) {
-        if (model.isAutoOpeninEnabled()) {
-          if (cell.countNeighboursFlags() == cell.getCellValue()) {
-            for (Cell neighbour : cell.neighboursList) {
-              neighbour.openCell();
-            }
-          }
-        }
-      }
-    };
+    private static EventAction openAllNeighboursAction = emptyAction;
     // open cell
     private static final EventAction openCellAction  = 
     new EventAction() {
-      public void ExecuteAction(Cell cell, MinesweeperModel model) {
+      public void ExecuteAction(Cell cell) {
         cell.openCell();
       }
     };
-    
-    private static final EventAction emptyAction  = 
-      new EventAction() {
-        public void ExecuteAction(Cell cell, MinesweeperModel model) {}
-      };
       
       /** 
        * Determine action procedure for event type by cell.
@@ -211,29 +219,58 @@ public class Cell {
           return switchFlagAction;
         }
       }
-      System.out.println("Can't reach this place in EventAction.getEventAction");
       return emptyAction;
     }
+    
+    public static void setAutoFlaggingMode(boolean autoFlagging){
+      if(autoFlagging) {
+        flagAllNeighboursAction = new EventAction() {
+          public void ExecuteAction(Cell cell) {
+            if (cell.countOpenNeighbours() == cell.neighboursList.size()
+                - cell.getCellValue()) {
+              for (Cell neighbour : cell.neighboursList) {
+                neighbour.flagCell();
+              }
+            }
+          }
+        };
+      }
+      else {
+        flagAllNeighboursAction = emptyAction;
+      }
+    }
+    
+    public static void setAutoOpeningMode(boolean autoOpening) {
+      if (autoOpening) {
+        openAllNeighboursAction = new EventAction() {
+          public void ExecuteAction(Cell cell) {
+            if (cell.countNeighboursFlags() == cell.getCellValue()) {
+              for (Cell neighbour : cell.neighboursList) {
+                neighbour.openCell();
+              }
+            }
+          }
+        };
+      } else {
+        openAllNeighboursAction = emptyAction;
+      }
+    }
       
-    abstract public void ExecuteAction(Cell cell, MinesweeperModel model);
+    abstract public void ExecuteAction(Cell cell);
   }
   
   public void setMine() {
-    cellType = CellType.MINE;
+    isMine = true;
   }
 
   private boolean isGameEnded() {
-    //return (this.cellType == CellType.MINE && this.cellState == CellState.OPEN) || isGameEndedInNeighbours();
-    return (this.cellType == CellType.MINE && this.cellState == CellState.OPEN);
+    return (isMine && isOpen());
   }
   
   private boolean isGameEndedInNeighbours() {
-    if(cellState!=CellState.OPEN) {
+    if(!isOpen()) {
       return false;
     }
-//    if(value!=0) {
-//      return false;
-//    }
     for(Cell cell: neighboursList) {
       if(cell.isGameEnded()) {
         return true;
