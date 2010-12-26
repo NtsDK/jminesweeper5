@@ -1,5 +1,10 @@
 package gameLogic;
 
+/**
+ * This class used for representing cell position and like key for cell.
+ * @author tima
+ *
+ */
 public class FieldPoint {
   private int x, y;
   

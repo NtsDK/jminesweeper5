@@ -7,6 +7,11 @@ import gameLogic.MinesweeperModel;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * This class is a simple console minesweeper implemetation for testing MinesweeperModel in action.
+ * @author tima
+ *
+ */
 public class MineSweeperConsoleGame {
 
   private static HashMap<String, GameEventType> commandsMap = new HashMap<String, GameEventType>();
@@ -96,9 +101,9 @@ public class MineSweeperConsoleGame {
           int y = in.nextInt()-1;
           mineSweeperGame.makeMove(new FieldPoint(x, y), GameEventType.LEFT_BUTTON_CLICK);
           ConsoleUtilities.printGameField(mineSweeperGame);
-          if(mineSweeperGame.isGameEnded()) {
+          if(mineSweeperGame.isGameEnded() && !mineSweeperGame.isGamerWin() ) {
             System.out.println("Defeat!");
-          } else if(mineSweeperGame.testWinCondition()) {
+          } else if(mineSweeperGame.isGameEnded() && mineSweeperGame.isGamerWin()) {
             System.out.println("You win!");
           }
         } catch(Exception e) {
@@ -114,15 +119,9 @@ public class MineSweeperConsoleGame {
           int y = in.nextInt()-1;
           mineSweeperGame.makeMove(new FieldPoint(x, y), GameEventType.RIGHT_BUTTON_CLICK);
           ConsoleUtilities.printGameField(mineSweeperGame);
-          if(mineSweeperGame.isGameEnded()) {
-            System.out.println("Defeat!");
-          } else if(mineSweeperGame.testWinCondition()) {
-            System.out.println("You win!");
-          }
         } catch(Exception e) {
           System.out.println("Incorrect coordinates");
         }
-        
       }
     });
     eventHandlers.put(GameEventType.NEW_GAME, new EventHandler() {
