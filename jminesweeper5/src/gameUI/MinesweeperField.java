@@ -10,31 +10,33 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Properties;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
 
+/**
+ * This class is a minesweeper UI representation container.
+ * It controls showing game and provides interface for changing game parameters.
+ * @author tima
+ *
+ */
 public class MinesweeperField extends JPanel{
   private static final long serialVersionUID = -5893741954597139558L;
+  
+  private static final int PICTURE_SIZE = 40;
+  
   public MinesweeperField() {
-    loadProperties();
+    gameModel = new MinesweeperModel(10,10,10);
+    gameRepresentationModel = new MinesweeperRepresentationModel(gameModel);
     
-    gameModel = new MinesweeperModel(Integer.parseInt(getProperty("xSize")),
-        Integer.parseInt(getProperty("ySize")),
-        Integer.parseInt(getProperty("minesNumber")));
-    
-    gameTable = new JTable(gameModel);
-    gameModel.addTableModelListener(gameTable);
-    
+    gameTable = new JTable(gameRepresentationModel);
+    gameRepresentationModel.addTableModelListener(gameTable);
     
     gameTable.setCellSelectionEnabled(false);
     gameTable.setDefaultRenderer(Object.class, new CellRenderer());
@@ -51,11 +53,11 @@ public class MinesweeperField extends JPanel{
           if (SwingUtilities.isLeftMouseButton(e)) {
             gameModel.makeMove(new FieldPoint(column, row),
                 GameEventType.LEFT_BUTTON_CLICK);
-            gameModel.fireTableDataChanged();
+            gameRepresentationModel.fireTableDataChanged();
           } else if (SwingUtilities.isRightMouseButton(e)) {
             gameModel.makeMove(new FieldPoint(column, row),
                 GameEventType.RIGHT_BUTTON_CLICK);
-            gameModel.fireTableDataChanged();
+            gameRepresentationModel.fireTableDataChanged();
           }
         }
       }
@@ -67,35 +69,12 @@ public class MinesweeperField extends JPanel{
   public void resetGame() {
     gameModel.resetGame();
     for(int i=0;i<gameTable.getColumnCount();++i){
-      gameTable.getColumnModel().getColumn(i).setPreferredWidth(40);
+      gameTable.getColumnModel().getColumn(i).setPreferredWidth(PICTURE_SIZE);
     }
-    gameTable.setRowHeight(40);
-    gameModel.fireTableDataChanged();
+    gameTable.setRowHeight(PICTURE_SIZE);
+    gameRepresentationModel.fireTableDataChanged();
   }
 
-  public void loadProperties() {
-    gameProperties = new Properties();
-    
-    try {
-      FileInputStream in;
-      in = new FileInputStream("minesweeper.properties");
-      gameProperties.load(in);
-      in.close();
-    } catch (FileNotFoundException e1) {
-      e1.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-  
-  private String getProperty(String propertyName) {
-    String property = gameProperties.getProperty(propertyName);
-    if(property==null) {
-      property = defaultProperties.get(propertyName);
-    }
-    return property;
-  }
-  
   public class CellRenderer extends JLabel implements TableCellRenderer {
 
     @Override
@@ -107,22 +86,46 @@ public class MinesweeperField extends JPanel{
       this.setMaximumSize(size);
       this.setMinimumSize(size);
       this.setPreferredSize(size);
-      
       return this;
     }
   }
-  
 
-  private MinesweeperModel gameModel;
-  private JTable gameTable;
-  private Properties gameProperties = new Properties();
-  
-  private static HashMap<String,String> defaultProperties = new HashMap<String, String>();
-  static {
-    defaultProperties.put("xSize", "20");
-    defaultProperties.put("ySize", "10");
-    defaultProperties.put("minesNumber", "15");
+  public boolean isAutoFlaggingEnabled() {
+    return gameModel.isAutoFlaggingEnabled();
   }
+
+  public void setAutoFlaggingMode(boolean b) {
+    gameModel.setAutoFlagging(b);
+  }
+  
+  public boolean isAutoOpeningEnabled() {
+    return gameModel.isAutoOpeningEnabled();
+  }
+
+  public void setAutoOpeningMode(boolean b) {
+    gameModel.setAutoOpening(b);    
+  }
+
+  public int getMinesNumber() {
+    return gameModel.getMinesNumber();
+  }
+
+  public int getFieldXSize() {
+    return gameModel.getXSize();
+  }
+
+  public int getFieldYSize() {
+    return gameModel.getYSize();
+  }
+
+  public void setFieldParameters(int fieldXSize, int fieldYSize, int minesNumber) {
+    gameModel.setFieldSize(fieldXSize, fieldYSize);
+    gameModel.setMinesNumber(minesNumber);
+    gameRepresentationModel.fireTableStructureChanged();
+    resetGame();
+  }
+  
+  private MinesweeperModel gameModel;
+  private MinesweeperRepresentationModel gameRepresentationModel;
+  private JTable gameTable;
 }
-
-

@@ -10,6 +10,8 @@ import gameLogic.MinesweeperModel.OutOfFieldException;
 
 import java.util.ArrayList;
 
+import junit.framework.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -90,7 +92,7 @@ public class MinesweeperModelTest{
     
     assertEquals(mineSweeperGame.getCell(0, 0).getCellValue(), -1);
     assertEquals(mineSweeperGame.getCell(1, 0).getCellValue(), 2);
-    assertEquals(mineSweeperGame.getCell(2, 0).getCellValue(), 0);
+    assertEquals(mineSweeperGame.getCell(5, 0).getCellValue(), 0);
   }
   
   @Test
@@ -138,10 +140,18 @@ public class MinesweeperModelTest{
     MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
     
     mineSweeperGame.setAutoFlagging(true);
-    mineSweeperGame.makeMove(new FieldPoint(3, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(1, 1), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(2, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(2, 1), GameEventType.LEFT_BUTTON_CLICK);
     mineSweeperGame.makeMove(new FieldPoint(1, 0), GameEventType.RIGHT_BUTTON_CLICK);
     
     
+    ConsoleUtilities.printField(mineSweeperGame);
+    assertEquals(mineSweeperGame.getCell(0, 0).isFlag(), true);
+    assertEquals(mineSweeperGame.getCell(0, 1).isFlag(), true);
+    
+    mineSweeperGame.makeMove(new FieldPoint(1, 0), GameEventType.RIGHT_BUTTON_CLICK);
     ConsoleUtilities.printField(mineSweeperGame);
     assertEquals(mineSweeperGame.getCell(0, 0).isFlag(), true);
     assertEquals(mineSweeperGame.getCell(0, 1).isFlag(), true);
@@ -192,21 +202,28 @@ public class MinesweeperModelTest{
   }
 
   public MinesweeperModel getOverridedMineSweeperGame() {
-    MinesweeperModel mineSweeperGame = new MinesweeperModel(20,10,5) {
-      @Override
-      public void resetGame() {
-        makeField();
-        int xSize = getXSize();
-        int ySize = getYSize();
-        getCell(0, 0).setMine();
-        getCell(0, 1).setMine();
-        getCell(xSize-1, 0).setMine();
-        getCell(0, ySize-1).setMine();
-        getCell(xSize-1, ySize-1).setMine();
-      }
-    };
-    mineSweeperGame.resetGame();
-    mineSweeperGame.countCellValues();
+    MinesweeperModel mineSweeperGame = new MinesweeperModel(20,10,10);
+    mineSweeperGame.makeTestingModel();
+//    {
+//      @Override
+//      public void resetGame() {
+//        makeField();
+//        int xSize = getXSize();
+//        int ySize = getYSize();
+//        getCell(0, 0).setMine();
+//        getCell(0, 1).setMine();
+//        getCell(3, 0).setMine();
+//        getCell(xSize-1, 0).setMine();
+//        getCell(xSize-2, 0).setMine();
+//        getCell(xSize-3, 0).setMine();
+//        getCell(xSize-4, 0).setMine();
+//        getCell(xSize-5, 0).setMine();
+//        getCell(0, ySize-1).setMine();
+//        getCell(xSize-1, ySize-1).setMine();
+//      }
+//    };
+//    mineSweeperGame.resetGame();
+//    mineSweeperGame.countCellValues();
    
     return mineSweeperGame;
   }
@@ -238,6 +255,40 @@ public class MinesweeperModelTest{
     model.setFieldSize(100, 100);
     assertEquals(model.getXSize(), 50);
     assertEquals(model.getYSize(), 50);
+  }
+  
+  @Test
+  public void testWinConditions(){
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
+    mineSweeperGame.makeMove(new FieldPoint(3, 3), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(2, 0), GameEventType.LEFT_BUTTON_CLICK);
+    
+    ConsoleUtilities.printField(mineSweeperGame);
+    Assert.assertTrue(mineSweeperGame.isGameEnded());
+  }
+  
+  @Test
+  public void testIsGamerWin(){
+    MinesweeperModel mineSweeperGame = getOverridedMineSweeperGame();
+    Assert.assertFalse(mineSweeperGame.isGamerWin());
+    
+    mineSweeperGame.makeMove(new FieldPoint(3, 3), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(2, 0), GameEventType.LEFT_BUTTON_CLICK);
+        
+    ConsoleUtilities.printField(mineSweeperGame);
+    Assert.assertTrue(mineSweeperGame.isGamerWin());
+    
+    mineSweeperGame = getOverridedMineSweeperGame();
+    
+    mineSweeperGame.makeMove(new FieldPoint(3, 3), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(1, 0), GameEventType.LEFT_BUTTON_CLICK);
+    mineSweeperGame.makeMove(new FieldPoint(3, 0), GameEventType.LEFT_BUTTON_CLICK);
+        
+    ConsoleUtilities.printField(mineSweeperGame);
+    Assert.assertFalse(mineSweeperGame.isGamerWin());
+    
   }
   
 }

@@ -4,116 +4,129 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This class represents cell. It contains all cells logic and information.
+ * Information:
+ * - state of the cell (open, close, flag)
+ * - type of the cell (empty cell, mine)
+ * - list of neighbour cells
+ * - number of neighbour cells which contains mines
+ * Logic:
+ * - state access methods (isOpen, isFlag, isClose)
+ * - type access methods (isMine)
+ * - neighbour informaion access (countNeighboursFlags, countOpenNeighbours)
+ * - cells reaction on game events (method makeMove and class EventAction)
+ * Additional:
+ * - cell string representation
+ * - equals and hashCode by cellCoords (this is the unique key of cell)
+ * @author tima
+ *
+ */
 public class Cell {
-  private FieldPoint cellCoords;
+  private FieldPoint fieldPoint;
   private CellState cellState;
   private ArrayList<Cell> neighboursList = new ArrayList<Cell>();
   private int cellValue = -1;
   private boolean isMine;
-  
+
   private static class CellState {
-    private CellState() {}
+    private CellState() {
+    }
+
     public static final CellState OPEN = new CellState();
     public static final CellState CLOSE = new CellState();
     public static final CellState FLAG = new CellState();
   }
-  
+
   public boolean isOpen() {
     return cellState == CellState.OPEN;
   }
-  
+
   public boolean isFlag() {
     return cellState == CellState.FLAG;
   }
-  
+
   public boolean isClose() {
     return cellState == CellState.CLOSE;
   }
-  
+
   public Cell(int x, int y) {
     this(new FieldPoint(x, y));
   }
-  
+
   public Cell(FieldPoint cellCoords) {
-    this.cellCoords = cellCoords;
+    this.fieldPoint = cellCoords;
     cellState = CellState.CLOSE;
     isMine = false;
   }
-  
+
   public void setNeighbourList(ArrayList<Cell> neighboursList) {
     this.neighboursList = neighboursList;
     int neighbourMineNumber = 0;
-    for(Cell cell:neighboursList) {
-      if(cell.isMine() ) {
+    for (Cell cell : neighboursList) {
+      if (cell.isMine()) {
         neighbourMineNumber++;
       }
     }
-    setCellValue(neighbourMineNumber);
+    cellValue = neighbourMineNumber;
   }
-  
-  public void setCellValue(int value) {
-    cellValue = value;
-  }
-  
+
   public int getCellValue() {
     return cellValue;
   }
-  
+
   public boolean isMine() {
     return isMine;
   }
-  
+
   /**
    * Used for multicell open operation
+   * 
    * @return
    */
   public int countNeighboursFlags() {
     int neighboursCounter = 0;
-    for(Cell cell: neighboursList) {
-      if(cell.getCellState()==CellState.FLAG) {
+    for (Cell cell : neighboursList) {
+      if (cell.isFlag()) {
         neighboursCounter++;
       }
     }
     return neighboursCounter;
   }
-  
+
   /**
    * Used for multicell close operation
+   * 
    * @return
    */
   public int countOpenNeighbours() {
     int neighboursCounter = 0;
-    for(Cell cell: neighboursList) {
-      if(cell.getCellState()==CellState.OPEN) {
+    for (Cell cell : neighboursList) {
+      if (cell.isOpen()) {
         neighboursCounter++;
       }
     }
     return neighboursCounter;
   }
-  
+
   /** Recursive opening operation */
   public void openCell() {
-    if(cellState == CellState.CLOSE) {
+    if (cellState == CellState.CLOSE) {
       cellState = CellState.OPEN;
-      if(cellValue == 0) {
-        for(Cell cell: neighboursList) {
+      if (cellValue == 0) {
+        for (Cell cell : neighboursList) {
           cell.openCell();
         }
       }
     }
   }
-  
+
   public void flagCell() {
-    if(cellState == CellState.CLOSE) {
+    if (cellState == CellState.CLOSE) {
       cellState = CellState.FLAG;
-    }
-    else if(cellState == CellState.FLAG) {
+    } else if (cellState == CellState.FLAG) {
       cellState = CellState.CLOSE;
     }
-  }
-  
-  public CellState getCellState() {
-    return cellState;
   }
 
   @Override
@@ -121,7 +134,7 @@ public class Cell {
     final int prime = 31;
     int result = 1;
     result = prime * result
-        + ((cellCoords == null) ? 0 : cellCoords.hashCode());
+        + ((fieldPoint == null) ? 0 : fieldPoint.hashCode());
     return result;
   }
 
@@ -134,25 +147,24 @@ public class Cell {
     if (getClass() != obj.getClass())
       return false;
     Cell other = (Cell) obj;
-    if (cellCoords == null) {
-      if (other.cellCoords != null)
+    if (fieldPoint == null) {
+      if (other.fieldPoint != null)
         return false;
-    } else if (!cellCoords.equals(other.cellCoords))
+    } else if (!fieldPoint.equals(other.fieldPoint))
       return false;
     return true;
   }
-  
-  /** Make move and return flag isGameEnded */ 
+
+  /** Make move and return flag isGameEnded */
   public boolean makeMove(GameEventType eventType, MinesweeperModel model) {
     EventAction eventAction = EventAction.getEventAction(eventType, this);
     eventAction.ExecuteAction(this);
-    if(eventAction.equals(EventAction.openAllNeighboursAction)) {
+    if (eventAction.equals(EventAction.openAllNeighboursAction)) {
       return isGameEnded() || isGameEndedInNeighbours();
     } else {
       return isGameEnded();
     }
   }
-  
 
   private static Map<CellState, String> cellState2String = new HashMap<CellState, String>();
   static {
@@ -160,105 +172,103 @@ public class Cell {
     cellState2String.put(CellState.CLOSE, "C");
     cellState2String.put(CellState.FLAG, "F");
   }
-  
+
   public String getCellStateStringRepresentation() {
     return cellState2String.get(cellState);
   }
-  
+
   public static abstract class EventAction {
-    private EventAction() {}
+    private EventAction() {
+    }
+
     // flag on/off
-    private static final EventAction switchFlagAction  =
-    new EventAction() {
+    private static final EventAction switchFlagAction = new EventAction() {
       public void ExecuteAction(Cell cell) {
         cell.flagCell();
       }
     };
-    private static final EventAction emptyAction  = 
-      new EventAction() {
-        public void ExecuteAction(Cell cell) {}
-      };
+    private static final EventAction emptyAction = new EventAction() {
+      public void ExecuteAction(Cell cell) {
+      }
+    };
+    private static final EventAction autoFlaggingAction = new EventAction() {
+      public void ExecuteAction(Cell cell) {
+        if (cell.countOpenNeighbours() == cell.neighboursList.size()
+            - cell.getCellValue()) {
+          for (Cell neighbour : cell.neighboursList) {
+            if (neighbour.isClose()) {
+              neighbour.flagCell();
+            }
+          }
+        }
+      }
+    };
+
+    private static final EventAction autoOpeningAction = new EventAction() {
+      public void ExecuteAction(Cell cell) {
+        if (cell.countNeighboursFlags() == cell.getCellValue()) {
+          for (Cell neighbour : cell.neighboursList) {
+            neighbour.openCell();
+          }
+        }
+      }
+    };
+
     // flag all neighbours
     private static EventAction flagAllNeighboursAction = emptyAction;
     // open all neighbours
     private static EventAction openAllNeighboursAction = emptyAction;
     // open cell
-    private static final EventAction openCellAction  = 
-    new EventAction() {
+    private static final EventAction openCellAction = new EventAction() {
       public void ExecuteAction(Cell cell) {
         cell.openCell();
       }
     };
-      
-      /** 
-       * Determine action procedure for event type by cell.
-       * @param eventType
-       * @param cell state determine action type
-       * @return
-       */
+
+    /**
+     * Determine action procedure for event type by cell.
+     * 
+     * @param eventType
+     * @param cell
+     *          state determine action type
+     * @return
+     */
     public static EventAction getEventAction(GameEventType eventType, Cell cell) {
-      if(eventType == GameEventType.LEFT_BUTTON_CLICK) {
-        if(cell.getCellState()==CellState.OPEN) {
+      if (eventType == GameEventType.LEFT_BUTTON_CLICK) {
+        if (cell.isOpen()) {
           return openAllNeighboursAction;
         }
-        if(cell.getCellState()==CellState.FLAG) {
+        if (cell.isFlag()) {
           return emptyAction;
         }
-        if(cell.getCellState()==CellState.CLOSE) {
+        if (cell.isClose()) {
           return openCellAction;
         }
-      }
-      else {
-        if(cell.getCellState()==CellState.OPEN) {
+      } else {
+        if (cell.isOpen()) {
           return flagAllNeighboursAction;
         }
-        if(cell.getCellState()==CellState.FLAG) {
+        if (cell.isFlag()) {
           return switchFlagAction;
         }
-        if(cell.getCellState()==CellState.CLOSE) {
+        if (cell.isClose()) {
           return switchFlagAction;
         }
       }
       return emptyAction;
     }
-    
-    public static void setAutoFlaggingMode(boolean autoFlagging){
-      if(autoFlagging) {
-        flagAllNeighboursAction = new EventAction() {
-          public void ExecuteAction(Cell cell) {
-            if (cell.countOpenNeighbours() == cell.neighboursList.size()
-                - cell.getCellValue()) {
-              for (Cell neighbour : cell.neighboursList) {
-                neighbour.flagCell();
-              }
-            }
-          }
-        };
-      }
-      else {
-        flagAllNeighboursAction = emptyAction;
-      }
+
+    public static void setAutoFlaggingMode(boolean autoFlagging) {
+      flagAllNeighboursAction = autoFlagging ? autoFlaggingAction : emptyAction;
     }
-    
+
     public static void setAutoOpeningMode(boolean autoOpening) {
-      if (autoOpening) {
-        openAllNeighboursAction = new EventAction() {
-          public void ExecuteAction(Cell cell) {
-            if (cell.countNeighboursFlags() == cell.getCellValue()) {
-              for (Cell neighbour : cell.neighboursList) {
-                neighbour.openCell();
-              }
-            }
-          }
-        };
-      } else {
-        openAllNeighboursAction = emptyAction;
-      }
+      openAllNeighboursAction = autoOpening ? autoOpeningAction : emptyAction;
     }
-      
+
     abstract public void ExecuteAction(Cell cell);
   }
-  
+
   public void setMine() {
     isMine = true;
   }
@@ -266,17 +276,16 @@ public class Cell {
   private boolean isGameEnded() {
     return (isMine && isOpen());
   }
-  
+
   private boolean isGameEndedInNeighbours() {
-    if(!isOpen()) {
+    if (!isOpen()) {
       return false;
     }
-    for(Cell cell: neighboursList) {
-      if(cell.isGameEnded()) {
+    for (Cell cell : neighboursList) {
+      if (cell.isGameEnded()) {
         return true;
       }
     }
     return false;
   }
-  
 }
